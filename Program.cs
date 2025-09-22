@@ -49,13 +49,11 @@ builder.Services.AddAuthorization();
 // --- Data Protection (CRITICAL FOR SHARED SESSION) ---
 // Configures keys to be stored in a shared location (Azure Blob Storage).
 // Both Api and WebApp projects MUST point to the same location.
-var dataProtectionBlobUri = new Uri(builder.Configuration.GetValue<string>("AzureDataProtection:BlobStorageUri")
-    ?? throw new InvalidOperationException("AzureDataProtection:BlobStorageUri not configured."));
+var dataProtectionConnectionString = builder.Configuration.GetConnectionString("AzureDataProtection")
+    ?? throw new InvalidOperationException("Connection string 'AzureDataProtection' not found.");
 
 builder.Services.AddDataProtection()
-    .PersistKeysToAzureBlobStorage(dataProtectionBlobUri)
-    // CRITICAL: This application name is used to isolate cookies. 
-    // It MUST be the same in both the Api and WebApp projects.
+    .PersistKeysToAzureBlobStorage(dataProtectionConnectionString, "keys", "keys.xml") // <-- New method
     .SetApplicationName("ScoreTrackerShared");
 
 // --- Distributed Session Cache using Azure Redis ---
